@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [ chrome, firefox ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build framework
+        run: mvn clean install -pl framework -B
+
+      - name: Compile tests
+        run: mvn clean test-compile -pl tests -am -B
+
+      - name: Run tests
+        run: mvn test -pl tests -B -Denv=dev -Dbrowser=${{ matrix.browser }} -Dheadless=true
+        continue-on-error: true
+
+      - name: Upload Cucumber Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-reports-${{ matrix.browser }}
+          path: tests/target/cucumber-reports/
+          retention-days: 14
+
+      - name: Upload Extent Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: extent-reports-${{ matrix.browser }}
+          path: tests/target/extent-reports/
+          retention-days: 14
+
+      - name: Upload Screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-screenshots-${{ matrix.browser }}
+          path: screenshots/
+          retention-days: 7

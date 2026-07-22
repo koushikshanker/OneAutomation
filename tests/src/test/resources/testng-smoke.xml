@@ -1,0 +1,14 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="OneAutomation Smoke Suite" parallel="methods" thread-count="2">
+
+    <listeners>
+        <listener class-name="com.oneautomation.framework.hooks.TestNGListener"/>
+    </listeners>
+
+    <test name="Smoke Tests">
+        <classes>
+            <class name="com.oneautomation.tests.base.TestRunner"/>
+        </classes>
+    </test>
+
+</suite>
